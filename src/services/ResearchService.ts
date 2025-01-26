@@ -1,3 +1,5 @@
+import { FirecrawlService } from '@/utils/FirecrawlService';
+
 interface ResearchPoint {
   title: string;
   content: string;
