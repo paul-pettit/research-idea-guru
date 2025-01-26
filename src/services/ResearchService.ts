@@ -64,6 +64,14 @@ export class ResearchService {
     console.log('Using OpenAI API URL:', apiUrl);
     console.log('Using model:', model);
 
+    const systemPrompt = `You are a business research expert. Analyze the provided data and generate a comprehensive research report with the following structure:
+    1. Main Points: Extract 10 key insights, each with a title, detailed content, and relevant source URLs
+    2. FAQ: Generate relevant questions and answers based on the data
+    3. Related Topics: Suggest related research topics
+    4. Useful Links: Provide relevant links with titles and descriptions
+    
+    Format your response as a JSON object with these exact keys: mainPoints (array of {title, content, sources}), faq (array of {question, answer}), relatedTopics (array of strings), links (array of {url, title, description})`;
+
     const response = await fetch(`${apiUrl}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -75,43 +83,40 @@ export class ResearchService {
         messages: [
           {
             role: 'system',
-            content: 'You are a business research expert. Analyze the provided data and generate a comprehensive research report.'
+            content: systemPrompt
           },
           {
             role: 'user',
-            content: `Generate a detailed research report about ${topic} using this data: ${JSON.stringify(crawlData)}. Include 10 main points, FAQ, related topics, and relevant links.`
+            content: `Generate a detailed research report about ${topic} using this data: ${JSON.stringify(crawlData)}`
           }
         ],
         temperature: 0.7,
         max_tokens: 2000,
+        response_format: { type: "json_object" }
       }),
     });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('OpenAI API error:', error);
+      throw new Error(`OpenAI API error: ${error}`);
+    }
 
     const result = await response.json();
     console.log('AI analysis completed:', result);
 
-    // Process and structure the response
-    const processedResult = this.processAIResponse(result.choices[0].message.content);
-    return processedResult;
-  }
-
-  private static processAIResponse(content: string): ResearchResult {
-    // This is a simplified version - in reality, you'd want to parse the AI response more carefully
-    return {
-      topic: "Business Research",
-      mainPoints: Array(10).fill(null).map((_, i) => ({
-        title: `Point ${i + 1}`,
-        content: `Content for point ${i + 1}`,
-        sources: [`https://example.com/${i + 1}`]
-      })),
-      faq: [
-        { question: "Common question 1?", answer: "Answer 1" },
-        { question: "Common question 2?", answer: "Answer 2" }
-      ],
-      relatedTopics: ["Related Topic 1", "Related Topic 2"],
-      links: [
-        { url: "https://example.com", title: "Example", description: "Description" }
-      ]
-    };
+    try {
+      const content = JSON.parse(result.choices[0].message.content);
+      return {
+        topic,
+        mainPoints: content.mainPoints || [],
+        faq: content.faq || [],
+        relatedTopics: content.relatedTopics || [],
+        links: content.links || []
+      };
+    } catch (error) {
+      console.error('Error parsing AI response:', error);
+      throw new Error('Failed to parse AI response');
+    }
   }
 }
