@@ -17,6 +17,7 @@ interface ResearchResult {
 export class ResearchService {
   private static OPENAI_API_KEY_STORAGE = 'openai_api_key';
   private static OPENAI_API_URL_STORAGE = 'openai_api_url';
+  private static OPENAI_MODEL_STORAGE = 'openai_model';
 
   static saveOpenAIKey(apiKey: string): void {
     localStorage.setItem(this.OPENAI_API_KEY_STORAGE, apiKey);
@@ -36,6 +37,15 @@ export class ResearchService {
     return localStorage.getItem(this.OPENAI_API_URL_STORAGE) || 'https://api.openai.com/v1';
   }
 
+  static saveOpenAIModel(model: string): void {
+    localStorage.setItem(this.OPENAI_MODEL_STORAGE, model);
+    console.log('OpenAI model saved:', model);
+  }
+
+  static getOpenAIModel(): string {
+    return localStorage.getItem(this.OPENAI_MODEL_STORAGE) || 'deepseek-reasoner';
+  }
+
   static async generateResearch(topic: string): Promise<ResearchResult> {
     console.log('Starting research for topic:', topic);
     
@@ -50,7 +60,9 @@ export class ResearchService {
     }
 
     const apiUrl = this.getOpenAIUrl();
+    const model = this.getOpenAIModel();
     console.log('Using OpenAI API URL:', apiUrl);
+    console.log('Using model:', model);
 
     const response = await fetch(`${apiUrl}/chat/completions`, {
       method: 'POST',
@@ -59,7 +71,7 @@ export class ResearchService {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: model,
         messages: [
           {
             role: 'system',

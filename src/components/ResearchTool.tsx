@@ -18,15 +18,17 @@ export const ResearchTool = () => {
   const [firecrawlKey, setFirecrawlKey] = useState('');
   const [openaiKey, setOpenaiKey] = useState('');
   const [openaiUrl, setOpenaiUrl] = useState('https://api.openai.com/v1');
+  const [openaiModel, setOpenaiModel] = useState('deepseek-reasoner');
 
   const handleApiKeySave = () => {
     if (firecrawlKey) FirecrawlService.saveApiKey(firecrawlKey);
     if (openaiKey) ResearchService.saveOpenAIKey(openaiKey);
     if (openaiUrl) ResearchService.saveOpenAIUrl(openaiUrl);
+    if (openaiModel) ResearchService.saveOpenAIModel(openaiModel);
     setShowApiKeyInputs(false);
     toast({
       title: "API Keys Saved",
-      description: "Your API keys have been saved successfully",
+      description: "Your API keys and settings have been saved successfully",
     });
   };
 
@@ -101,6 +103,15 @@ export const ResearchTool = () => {
                 value={openaiUrl}
                 onChange={(e) => setOpenaiUrl(e.target.value)}
                 placeholder="Enter OpenAI API URL"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">OpenAI Model</label>
+              <Input
+                type="text"
+                value={openaiModel}
+                onChange={(e) => setOpenaiModel(e.target.value)}
+                placeholder="Enter OpenAI model name"
               />
             </div>
             <Button onClick={handleApiKeySave} className="w-full">
