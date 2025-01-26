@@ -16,11 +16,13 @@ export const ResearchTool = () => {
   const [researchResult, setResearchResult] = useState<any>(null);
   const [showApiKeyInputs, setShowApiKeyInputs] = useState(true);
   const [firecrawlKey, setFirecrawlKey] = useState('');
-  const [perplexityKey, setPerplexityKey] = useState('');
+  const [openaiKey, setOpenaiKey] = useState('');
+  const [openaiUrl, setOpenaiUrl] = useState('https://api.openai.com/v1');
 
   const handleApiKeySave = () => {
     if (firecrawlKey) FirecrawlService.saveApiKey(firecrawlKey);
-    if (perplexityKey) ResearchService.savePerplexityKey(perplexityKey);
+    if (openaiKey) ResearchService.saveOpenAIKey(openaiKey);
+    if (openaiUrl) ResearchService.saveOpenAIUrl(openaiUrl);
     setShowApiKeyInputs(false);
     toast({
       title: "API Keys Saved",
@@ -35,7 +37,7 @@ export const ResearchTool = () => {
     
     try {
       // Validate API keys
-      if (!FirecrawlService.getApiKey() || !ResearchService.getPerplexityKey()) {
+      if (!FirecrawlService.getApiKey() || !ResearchService.getOpenAIKey()) {
         setShowApiKeyInputs(true);
         throw new Error('API keys are required');
       }
@@ -84,12 +86,21 @@ export const ResearchTool = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Perplexity API Key</label>
+              <label className="block text-sm font-medium mb-1">OpenAI API Key</label>
               <Input
                 type="password"
-                value={perplexityKey}
-                onChange={(e) => setPerplexityKey(e.target.value)}
-                placeholder="Enter Perplexity API key"
+                value={openaiKey}
+                onChange={(e) => setOpenaiKey(e.target.value)}
+                placeholder="Enter OpenAI API key"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">OpenAI API URL</label>
+              <Input
+                type="url"
+                value={openaiUrl}
+                onChange={(e) => setOpenaiUrl(e.target.value)}
+                placeholder="Enter OpenAI API URL"
               />
             </div>
             <Button onClick={handleApiKeySave} className="w-full">

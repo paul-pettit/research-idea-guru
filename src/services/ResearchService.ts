@@ -1,5 +1,3 @@
-import { FirecrawlService } from '@/utils/FirecrawlService';
-
 interface ResearchPoint {
   title: string;
   content: string;
@@ -15,15 +13,25 @@ interface ResearchResult {
 }
 
 export class ResearchService {
-  private static PERPLEXITY_API_KEY_STORAGE = 'perplexity_api_key';
+  private static OPENAI_API_KEY_STORAGE = 'openai_api_key';
+  private static OPENAI_API_URL_STORAGE = 'openai_api_url';
 
-  static savePerplexityKey(apiKey: string): void {
-    localStorage.setItem(this.PERPLEXITY_API_KEY_STORAGE, apiKey);
-    console.log('Perplexity API key saved');
+  static saveOpenAIKey(apiKey: string): void {
+    localStorage.setItem(this.OPENAI_API_KEY_STORAGE, apiKey);
+    console.log('OpenAI API key saved');
   }
 
-  static getPerplexityKey(): string | null {
-    return localStorage.getItem(this.PERPLEXITY_API_KEY_STORAGE);
+  static getOpenAIKey(): string | null {
+    return localStorage.getItem(this.OPENAI_API_KEY_STORAGE);
+  }
+
+  static saveOpenAIUrl(apiUrl: string): void {
+    localStorage.setItem(this.OPENAI_API_URL_STORAGE, apiUrl);
+    console.log('OpenAI API URL saved');
+  }
+
+  static getOpenAIUrl(): string {
+    return localStorage.getItem(this.OPENAI_API_URL_STORAGE) || 'https://api.openai.com/v1';
   }
 
   static async generateResearch(topic: string): Promise<ResearchResult> {
@@ -33,20 +41,23 @@ export class ResearchService {
     const crawlData = await FirecrawlService.crawlWebsite(`https://www.google.com/search?q=${encodeURIComponent(topic)}`);
     console.log('Crawl data received:', crawlData);
 
-    // Use Perplexity to analyze the data
-    const apiKey = this.getPerplexityKey();
+    // Use OpenAI to analyze the data
+    const apiKey = this.getOpenAIKey();
     if (!apiKey) {
-      throw new Error('Perplexity API key not found');
+      throw new Error('OpenAI API key not found');
     }
 
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+    const apiUrl = this.getOpenAIUrl();
+    console.log('Using OpenAI API URL:', apiUrl);
+
+    const response = await fetch(`${apiUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-large-128k-online',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
